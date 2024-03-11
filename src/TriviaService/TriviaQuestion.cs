@@ -1,9 +1,11 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
+using System.Collections.Generic;
+
 namespace TriviaService;
 
-public class TriviaQuestion
+internal class TriviaQuestion
 {
     public readonly QuestionCategory Category;
     public readonly QuestionDifficulty Difficulty;

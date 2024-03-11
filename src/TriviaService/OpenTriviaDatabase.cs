@@ -1,17 +1,25 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Nodes;
+using System.Threading.Tasks;
 
 namespace TriviaService;
 
-public static class OpenTriviaDatabase
+internal static class OpenTriviaDatabase
 {
     private const string BaseUri = "https://opentdb.com/api.php";
 
-    public static async Task<IList<TriviaQuestion>> GetQuestionsAsync(OpenTriviaDataBaseQuery query)
+    public static async Task<IList<TriviaQuestion>> GetQuestionsAsync() => await GetQuestionsAsync(new GetQuestionsArgs());
+    public static async Task<IList<TriviaQuestion>> GetQuestionsAsync(GetQuestionsArgs query)
     {
         var uriSB = new StringBuilder(BaseUri);
 
@@ -50,16 +58,29 @@ public static class OpenTriviaDatabase
         return results;
     }
 
+    internal struct GetQuestionsArgs
+    {
+        public int Amount { get; set; } = 10;
+
+        public QuestionCategory? Category { get; set; } = null;
+
+        public QuestionDifficulty? Difficulty { get; set; } = null;
+
+        public QuestionType? Type { get; set; } = null;
+
+        public GetQuestionsArgs() { }
+    }
+
     public static TriviaQuestion ParseJson(JsonElement element)
     {
         var category = GetCategory(element.GetProperty("category").GetString());
         var difficulty = GetDifficulty(element.GetProperty("difficulty").GetString());
         var type = GetType(element.GetProperty("type").GetString());
 
-        var question = element.GetProperty("question").GetString() ?? throw new ArgumentOutOfRangeException(nameof(element), ".question is null or undefined");
-        var correctAnswer = element.GetProperty("correct_answer").GetString() ?? throw new ArgumentOutOfRangeException(nameof(element), ".correct_answer is null or undefined");
+        var question = WebUtility.HtmlDecode(element.GetProperty("question").GetString() ?? throw new ArgumentOutOfRangeException(nameof(element), ".question is null or undefined"));
+        var correctAnswer = WebUtility.HtmlDecode(element.GetProperty("correct_answer").GetString() ?? throw new ArgumentOutOfRangeException(nameof(element), ".correct_answer is null or undefined"));
 
-        var incorrectAnswers = element.GetProperty("incorrect_answers").EnumerateArray().Select(answer => answer.GetString() ?? throw new ArgumentOutOfRangeException(nameof(element), ".incorrect_answers[i] is null or undefined")).ToList() ?? throw new ArgumentOutOfRangeException(nameof(element), ".incorrect_answers is null or undefined");
+        var incorrectAnswers = element.GetProperty("incorrect_answers").EnumerateArray().Select(answer => WebUtility.HtmlDecode(answer.GetString() ?? throw new ArgumentOutOfRangeException(nameof(element), ".incorrect_answers[i] is null or undefined"))).ToList() ?? throw new ArgumentOutOfRangeException(nameof(element), ".incorrect_answers is null or undefined");
 
         return new TriviaQuestion(category, difficulty, type, question, correctAnswer, incorrectAnswers);
     }
@@ -88,9 +109,55 @@ public static class OpenTriviaDatabase
         {
             case "General Knowledge":
                 return QuestionCategory.GeneralKnowledge;
+            case "Entertainment: Books":
+                return QuestionCategory.Entertainment_Books;
+            case "Entertainment: Film":
+                return QuestionCategory.Entertainment_Film;
+            case "Entertainment: Music":
+                return QuestionCategory.Entertainment_Music;
+            case "Entertainment: Musicals &amp; Theatres":
+                return QuestionCategory.Entertainment_MusicalsAndTheatres;
+            case "Entertainment: Television":
+                return QuestionCategory.Entertainment_Television;
+            case "Entertainment: Video Games":
+                return QuestionCategory.Entertainment_VideoGames;
+            case "Entertainment: Board Games":
+                return QuestionCategory.Entertainment_BoardGames;
+            case "Science &amp; Nature":
+                return QuestionCategory.ScienceAndNature;
+            case "Science: Computers":
+                return QuestionCategory.Science_Computers;
+            case "Science: Mathematics":
+                return QuestionCategory.Science_Mathematics;
+            case "Mythology":
+                return QuestionCategory.Mythology;
+            case "Sports":
+                return QuestionCategory.Sports;
+            case "Geography":
+                return QuestionCategory.Geography;
+            case "History":
+                return QuestionCategory.History;
+            case "Politics":
+                return QuestionCategory.Politics;
+            case "Art":
+                return QuestionCategory.Art;
+            case "Celebrities":
+                return QuestionCategory.Celebrities;
+            case "Animals":
+                return QuestionCategory.Animals;
+            case "Vehicles":
+                return QuestionCategory.Vehicles;
+            case "Entertainment: Comics":
+                return QuestionCategory.Entertainment_Comics;
+            case "Science: Gadgets":
+                return QuestionCategory.Science_Gadgets;
+            case "Entertainment: Japanese Anime &amp; Manga":
+                return QuestionCategory.Entertainment_JapaneseAnimeAndManga;
+            case "Entertainment: Cartoon &amp; Animations":
+                return QuestionCategory.Entertainment_CartoonAndAnimations;
         }
 
-        throw new ArgumentOutOfRangeException(nameof(jsonValue));
+        throw new ArgumentOutOfRangeException(nameof(jsonValue), $"Value: \"{ jsonValue }\"");
     }
 
     private static string ToQueryValue(QuestionCategory value)
@@ -138,7 +205,7 @@ public static class OpenTriviaDatabase
                 return QuestionType.TrueFalse;
         }
 
-        throw new ArgumentOutOfRangeException(nameof(jsonValue));
+        throw new ArgumentOutOfRangeException(nameof(jsonValue), $"Value: \"{jsonValue}\"");
     }
 
     private static string ToQueryValue(QuestionType value)
@@ -149,22 +216,8 @@ public static class OpenTriviaDatabase
                 return "multiple";
             case QuestionType.TrueFalse:
                 return "boolean";
-
         }
 
         throw new ArgumentOutOfRangeException(nameof(value));
     }
-}
-
-public struct OpenTriviaDataBaseQuery
-{
-    public int Amount {get ; set; } = 10;
-
-    public QuestionCategory? Category {get ; set; } = null;
-
-    public QuestionDifficulty? Difficulty {get ; set; }= null;
-
-    public QuestionType? Type {get ; set; } = null;
-
-    public OpenTriviaDataBaseQuery() { }
 }
