@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
+using System;
 using System.Collections.Generic;
 
 namespace TriviaService;
@@ -15,7 +16,7 @@ internal class TriviaQuestion
 
     public readonly string CorrectAnswer;
 
-    public readonly List<string> IncorrectAnswers;
+    public readonly IReadOnlyList<string> IncorrectAnswers;
 
     public TriviaQuestion(QuestionCategory category, QuestionDifficulty difficulty, QuestionType type, string question, string correctAnswer, IEnumerable<string> incorrectAnswers)
     {
@@ -26,5 +27,10 @@ internal class TriviaQuestion
         Question = question;
         CorrectAnswer = correctAnswer;
         IncorrectAnswers = new List<string>(incorrectAnswers);
+    }
+
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(Question, CorrectAnswer);
     }
 }
