@@ -23,7 +23,11 @@ Simple service to ask trivia questions via Windows notifications.
 1. Run `TriviaService.exe` to start
 2. Press Ctrl+C to stop
 
-## Goals
+## History
+
+This project was built by [Jon Thysell](mailto://jthysell@microsoft.com) as a part of Microsoft's March 2024 Fix/Hack/Learn event.
+
+### Goals
 
 1. Practice some modern .NET development
 2. Learn how to create a Windows Service
@@ -31,14 +35,10 @@ Simple service to ask trivia questions via Windows notifications.
 4. Learn how to create and consume Windows Notifications
 5. Learn how to connect to a web REST API
 
-## Resources
+### Resources
 
 * [Create Windows Service using `BackgroundService`](https://learn.microsoft.com/en-us/dotnet/core/extensions/windows-service)
 * [Quickstart: App notifications in the Windows App SDK](https://learn.microsoft.com/en-us/windows/apps/windows-app-sdk/notifications/app-notifications/app-notifications-quickstart?tabs=cs)
 * [Tutorial: Make HTTP requests in a .NET console app using C#](https://learn.microsoft.com/en-us/dotnet/csharp/tutorials/console-webapiclient)
 * [Open Trivia Database](https://opentdb.com/)
 * [Logo Image](https://www.hiclipart.com/free-transparent-background-png-clipart-mthiw)
-
-## History
-
-This project was built by [Jon Thysell](mailto://jthysell@microsoft.com) as a part of the March 2024 FHL (Fix/Hack/Learn) event.
