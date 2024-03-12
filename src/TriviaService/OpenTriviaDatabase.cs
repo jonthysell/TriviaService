@@ -9,7 +9,6 @@ using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
-using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 
 namespace TriviaService;
@@ -41,7 +40,26 @@ internal static class OpenTriviaDatabase
         }
 
         var client = new HttpClient();
-        var jsonDoc = await client.GetFromJsonAsync<JsonDocument>(uriSB.ToString());
+
+        JsonDocument? jsonDoc = null;
+        while (jsonDoc is null)
+        {
+            try
+            {
+                jsonDoc = await client.GetFromJsonAsync<JsonDocument>(uriSB.ToString());
+            }
+            catch (HttpRequestException e)
+            {
+                switch (e.StatusCode)
+                {
+                    case HttpStatusCode.TooManyRequests:
+                        await Task.Delay(1000);
+                        break;
+                    default:
+                        throw;
+                }
+            }
+        }
 
         if (jsonDoc is null)
         {
