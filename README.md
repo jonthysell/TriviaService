@@ -31,13 +31,14 @@ This project was built by [Jon Thysell](mailto://jthysell@microsoft.com) as a pa
 
 1. Practice some modern .NET development
 2. Learn how to create a Windows Service
-3. Learn how to call WinAppSDK's WinRT APIs from C#
+3. Learn how to call Windows App SDK's WinRT APIs from C#
 4. Learn how to create and consume Windows Notifications
 5. Learn how to connect to a web REST API
 
 ### Resources
 
 * [Create Windows Service using `BackgroundService`](https://learn.microsoft.com/en-us/dotnet/core/extensions/windows-service)
+* [Windows App SDK Unpackaged C# Console App Sample](https://github.com/microsoft/WindowsAppSDK-Samples/tree/main/Samples/Unpackaged/cs-console-unpackaged)
 * [Quickstart: App notifications in the Windows App SDK](https://learn.microsoft.com/en-us/windows/apps/windows-app-sdk/notifications/app-notifications/app-notifications-quickstart?tabs=cs)
 * [Tutorial: Make HTTP requests in a .NET console app using C#](https://learn.microsoft.com/en-us/dotnet/csharp/tutorials/console-webapiclient)
 * [Open Trivia Database](https://opentdb.com/)
