@@ -7,11 +7,20 @@
     <Copyright>Copyright © Microsoft</Copyright>
     <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
     <RepositoryUrl>https://github.com/jonthysell/TriviaService</RepositoryUrl>
-    <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <Version>0.9.0</Version>
     <AssemblyVersion>$(Version).0</AssemblyVersion>
     <FileVersion>$(AssemblyVersion)</FileVersion>
+    <TargetFramework>net6.0-windows10.0.19041.0</TargetFramework>
+    <Platforms>x64;x86;ARM64</Platforms>
+    <RuntimeIdentifiers>win10-x86;win10-x64;win10-arm64</RuntimeIdentifiers>
+    <!-- Set WindowsPackageType=None to auto-intialize access to the WinAppSDK framework -->
+    <!-- Remove this property to control bootstrapper initialization -->
+    <WindowsPackageType>None</WindowsPackageType>
+    <!--Bug - Required for non-WinUI apps, remove once resolved -->
+    <WinUISDKReferences>False</WinUISDKReferences>
+    <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
+    <EnableMsixTooling>true</EnableMsixTooling>
   </PropertyGroup>
 
   <ItemGroup>
