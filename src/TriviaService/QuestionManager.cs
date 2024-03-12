@@ -9,19 +9,37 @@ namespace TriviaService;
 
 internal class QuestionManager
 {
-    public DateTime LastQuestionTimestamp { get; private set; } = DateTime.MinValue;
+    public TimeSpan InteractionTimeout { get; private set; } = TimeSpan.FromMinutes(60);
 
-    public TimeSpan TimeSinceLastQuestionAnswered => DateTime.Now - LastQuestionTimestamp;
+    public DateTime LastInteractionTimestamp { get; private set; } = DateTime.MinValue;
+
+    public TimeSpan TimeSinceLastInteraction => DateTime.Now - LastInteractionTimestamp;
 
     internal HashSet<TriviaQuestion> AnsweredQuestions { get; private set; } = new HashSet<TriviaQuestion>();
 
     internal Queue<TriviaQuestion> QuestionPool { get; private set; } = new Queue<TriviaQuestion>();
 
+    public event QuestionAskedEventHandler? QuestionAsked;
+
     public event QuestionAnsweredEventHandler? QuestionAnswered;
+
+    public QuestionManager(TimeSpan interactionTimeout) : this()
+    {
+        InteractionTimeout = interactionTimeout;
+    }
 
     public QuestionManager() { }
 
-    public async Task<TriviaQuestion> GetNextQuestionAsync()
+    public async Task RunAsync()
+    {
+        if (TimeSinceLastInteraction > InteractionTimeout)
+        {
+            var question = await GetNextQuestionAsync();
+            AskQuestion(question);
+        }
+    }
+
+    internal async Task<TriviaQuestion> GetNextQuestionAsync()
     {
         while (QuestionPool.Count == 0)
         {
@@ -39,12 +57,30 @@ internal class QuestionManager
         return QuestionPool.Dequeue();
     }
 
+    internal void AskQuestion(TriviaQuestion question)
+    {
+        LastInteractionTimestamp = DateTime.Now;
+        OnQuestionAsked(question);
+    }
+
+    protected void OnQuestionAsked(TriviaQuestion question)
+    {
+        QuestionAsked?.Invoke(this, new QuestionAskedEventArgs(question));
+    }
+
     public void AnswerQuestion(TriviaQuestion question, string answer)
     {
+        LastInteractionTimestamp = DateTime.Now;
         if (AnsweredQuestions.Add(question))
         {
             OnQuestionAnswered(question, answer);
         }
+    }
+
+    public void DismissQuestion(TriviaQuestion question)
+    {
+        LastInteractionTimestamp = DateTime.Now;
+        AnsweredQuestions.Add(question);
     }
 
     protected void OnQuestionAnswered(TriviaQuestion question, string answer)
@@ -53,19 +89,28 @@ internal class QuestionManager
     }
 }
 
-internal delegate void QuestionAnsweredEventHandler(object sender, QuestionAnsweredEventArgs e);
+internal delegate void QuestionAskedEventHandler(object sender, QuestionAskedEventArgs e);
 
-internal class QuestionAnsweredEventArgs : EventArgs
+internal class QuestionAskedEventArgs : EventArgs
 {
     public readonly TriviaQuestion Question;
 
+    public QuestionAskedEventArgs(TriviaQuestion question)
+    {
+        Question = question;
+    }
+}
+
+internal delegate void QuestionAnsweredEventHandler(object sender, QuestionAnsweredEventArgs e);
+
+internal class QuestionAnsweredEventArgs : QuestionAskedEventArgs
+{
     public readonly string Answer;
 
     public bool IsCorrect => Answer == Question.CorrectAnswer;
 
-    public QuestionAnsweredEventArgs(TriviaQuestion question, string answer)
+    public QuestionAnsweredEventArgs(TriviaQuestion question, string answer) : base(question)
     {
-        Question = question;
         Answer = answer;
     }
 }

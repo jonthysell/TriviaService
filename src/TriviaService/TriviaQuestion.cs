@@ -18,6 +18,8 @@ internal class TriviaQuestion
 
     public readonly IReadOnlyList<string> IncorrectAnswers;
 
+    public readonly IReadOnlyList<string> Answers;
+
     public TriviaQuestion(QuestionCategory category, QuestionDifficulty difficulty, QuestionType type, string question, string correctAnswer, IEnumerable<string> incorrectAnswers)
     {
         Category = category;
@@ -27,10 +29,23 @@ internal class TriviaQuestion
         Question = question;
         CorrectAnswer = correctAnswer;
         IncorrectAnswers = new List<string>(incorrectAnswers);
+
+        var answers = new List<string>(incorrectAnswers)
+        {
+            correctAnswer
+        };
+        answers.Sort();
+
+        Answers = answers;
     }
 
     public override int GetHashCode()
     {
         return HashCode.Combine(Question, CorrectAnswer);
+    }
+
+    public override string ToString()
+    {
+        return Question;
     }
 }

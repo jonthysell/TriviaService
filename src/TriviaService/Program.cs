@@ -21,7 +21,7 @@ if (OperatingSystem.IsWindows())
     LoggerProviderOptions.RegisterProviderOptions<EventLogSettings, EventLogLoggerProvider>(builder.Services);
 }
 
-builder.Services.AddHostedService<WindowsBackgroundService>();
+builder.Services.AddHostedService<TriviaBackgroundService>();
 
 var host = builder.Build();
 host.Run();
