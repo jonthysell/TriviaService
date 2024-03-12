@@ -1,9 +1,12 @@
 # TriviaService
 
-Simple service to ask trivia questions via Windows notifications.
+Simple background service to ask trivia questions via Windows notifications.
 
-![Screenshot 1](./.github/screenshot1.png)
-![Screenshot 2](./.github/screenshot2.png)
+
+| ![Screenshot 1](./.github/screenshot1.png) | ![Screenshot 2](./.github/screenshot2.png) |
+|:--:|:--:|
+
+Trivia questions provided by the free [Open Trivia Database](https://opentdb.com/).
 
 ## Setup
 
