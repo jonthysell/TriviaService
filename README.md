@@ -4,11 +4,21 @@ Simple service to ask trivia questions via Windows notifications.
 
 ## Setup
 
-**TODO***
+### Dependencies
+1. Download and install the .NET 6.0 SDK: https://dotnet.microsoft.com/en-us/download/dotnet/6.0
+
+### Build
+
+`build.cmd`
+
+### Test
+
+`test.cmd`
 
 ## Usage
 
-**TODO**
+1. Run `TriviaService.exe` to start
+2. Press Ctrl+C to stop
 
 ## History
 
