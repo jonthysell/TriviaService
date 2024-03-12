@@ -36,6 +36,11 @@ internal class TriviaQuestion
         };
         answers.Sort();
 
+        if (type == QuestionType.TrueFalse)
+        {
+            answers.Reverse();
+        }
+
         Answers = answers;
     }
 
