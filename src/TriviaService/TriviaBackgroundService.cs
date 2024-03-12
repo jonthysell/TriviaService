@@ -2,11 +2,16 @@
 // Licensed under the MIT License.
 
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Hosting;
+
+using Microsoft.Windows.AppNotifications;
+using Microsoft.Windows.AppNotifications.Builder;
+using System.Linq;
 
 namespace TriviaService;
 
@@ -19,7 +24,12 @@ public class TriviaBackgroundService : BackgroundService
 #endif
     internal QuestionManager QuestionManager { get; private set; }
 
+
     private readonly ILogger<TriviaBackgroundService> _logger;
+
+    private Dictionary<int, TriviaQuestion> _pendingQuestions = new Dictionary<int, TriviaQuestion>();
+
+    private bool _registeredForNotifications = false;
 
     public TriviaBackgroundService(ILogger<TriviaBackgroundService> logger)
     {
@@ -28,18 +38,46 @@ public class TriviaBackgroundService : BackgroundService
         QuestionManager = new QuestionManager(TimeSpan.FromMinutes(MinutesBetweenInteractions));
         QuestionManager.QuestionAsked += RaiseToastToAskQuestion;
         QuestionManager.QuestionAnswered += RaiseToastForQuestionAnswered;
+
+        RegisterForNotifications();
     }
 
     private void RaiseToastToAskQuestion(object sender, QuestionAskedEventArgs e)
     {
         LogInfo("Ask: \"{Question}\"", e.Question);
-        QuestionManager.AnswerQuestion(e.Question, e.Question.Answers[0]);
 
+        var builder = new AppNotificationBuilder()
+            .AddArgument("QuestionId", e.Question.GetHashCode().ToString())
+            .AddText($"Trivia: {e.Question.Category} ({e.Question.Difficulty})")
+            .AddText($"Q: {e.Question.Question} ")
+            .AddText($"A:");
+
+        foreach (var answer in e.Question.Answers)
+        {
+            builder.AddButton(new AppNotificationButton(answer)
+                .AddArgument("QuestionId", e.Question.GetHashCode().ToString())
+                .AddArgument("Answer", answer));
+        }
+
+        var appNotification = builder.BuildNotification();
+
+        AppNotificationManager.Default.Show(appNotification);
+
+        _pendingQuestions.Add(e.Question.GetHashCode(), e.Question);
     }
 
     private void RaiseToastForQuestionAnswered(object sender, QuestionAnsweredEventArgs e)
     {
         LogInfo("Answer: \"{Question}\" with \"{Answer}\" which is {Correctness}", e.Question, e.Answer, e.IsCorrect ? "correct" : "incorrect");
+
+        var builder = new AppNotificationBuilder()
+            .AddText($"{(e.IsCorrect ? "Correct" : "Incorrect")}!")
+            .AddText($"Q: {e.Question} ")
+            .AddText($"A: {e.Question.CorrectAnswer} ");
+
+        var appNotification = builder.BuildNotification();
+
+        AppNotificationManager.Default.Show(appNotification);
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -56,7 +94,52 @@ public class TriviaBackgroundService : BackgroundService
         catch (Exception ex)
         {
             LogError(ex, "{Message}", ex.Message);
+            UnregisterForNotifications();
             Environment.Exit(1);
+        }
+    }
+
+    ~TriviaBackgroundService()
+    {
+        UnregisterForNotifications();
+    }
+
+    private void RegisterForNotifications()
+    {
+        AppNotificationManager.Default.NotificationInvoked += Default_NotificationInvoked;
+
+        AppNotificationManager.Default.Register();
+        _registeredForNotifications = true;
+    }
+
+    private void Default_NotificationInvoked(AppNotificationManager sender, AppNotificationActivatedEventArgs args)
+    {
+        if (args.Arguments.TryGetValue("QuestionId", out var questionIdStr) && int.TryParse(questionIdStr, out var questionId))
+        {
+            if (_pendingQuestions.TryGetValue(questionId, out var question))
+            {
+                if (args.Arguments.TryGetValue("Answer", out var answer))
+                {
+                    LogInfo("User answering \"{Question}\"", question);
+                    QuestionManager.AnswerQuestion(question, answer);
+                }
+                else
+                {
+                    LogInfo("User dismissing \"{Question}\"", question);
+                    QuestionManager.DismissQuestion(question);
+                }
+
+                _pendingQuestions.Remove(questionId);
+            }
+        }
+    }
+
+    private void UnregisterForNotifications()
+    {
+        if (_registeredForNotifications)
+        {
+            AppNotificationManager.Default.Unregister();
+            _registeredForNotifications = false;
         }
     }
 
@@ -64,7 +147,7 @@ public class TriviaBackgroundService : BackgroundService
     {
         if (_logger.IsEnabled(LogLevel.Error))
         {
-            _logger.LogError(message, args);
+            _logger.LogError(ex, message, args);
         }
     }
 
