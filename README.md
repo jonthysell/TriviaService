@@ -2,6 +2,9 @@
 
 Simple service to ask trivia questions via Windows notifications.
 
+![Screenshot 1](./.github/screenshot1.png)
+![Screenshot 2](./.github/screenshot2.png)
+
 ## Setup
 
 ### Dependencies

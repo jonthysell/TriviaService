@@ -2,7 +2,9 @@
 // Licensed under the MIT License.
 
 using System;
+using System.IO;
 using System.Collections.Generic;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -30,6 +32,8 @@ public class TriviaBackgroundService : BackgroundService
 
     private bool _registeredForNotifications = false;
 
+    private Uri _logoPath = new Uri($"file://{Path.GetDirectoryName(Assembly.GetEntryAssembly().Location)}\\logo.png");
+
     public TriviaBackgroundService(ILogger<TriviaBackgroundService> logger)
     {
         _logger = logger;
@@ -47,15 +51,33 @@ public class TriviaBackgroundService : BackgroundService
 
         var builder = new AppNotificationBuilder()
             .AddArgument("QuestionId", e.Question.GetHashCode().ToString())
-            .AddText($"Trivia: {e.Question.Category} ({e.Question.Difficulty})")
-            .AddText($"Q: {e.Question.Question} ")
-            .AddText($"A:");
+            .SetAppLogoOverride(_logoPath)
+            .SetDuration(AppNotificationDuration.Long)
+            .AddText($"{OpenTriviaDatabase.GetCategoryFriendlyName(e.Question.Category)} ({e.Question.Difficulty})")
+            .AddText($"{e.Question.Question}");
 
-        foreach (var answer in e.Question.Answers)
+
+        if (e.Question.Type == QuestionType.TrueFalse)
         {
-            builder.AddButton(new AppNotificationButton(answer)
-                .AddArgument("QuestionId", e.Question.GetHashCode().ToString())
-                .AddArgument("Answer", answer));
+            foreach (var answer in e.Question.Answers)
+            {
+                builder.AddButton(new AppNotificationButton(answer)
+                    .AddArgument("QuestionId", e.Question.GetHashCode().ToString())
+                    .AddArgument("Answer", answer));
+            }
+        }
+        else
+        {
+            var cb = new AppNotificationComboBox("Answer");
+
+            foreach (var answer in e.Question.Answers)
+            {
+                cb.AddItem(answer, answer);
+            }
+
+            builder.AddComboBox(cb);
+            builder.AddButton(new AppNotificationButton("Answer")
+                    .AddArgument("QuestionId", e.Question.GetHashCode().ToString()));
         }
 
         var appNotification = builder.BuildNotification();
@@ -70,6 +92,7 @@ public class TriviaBackgroundService : BackgroundService
         LogInfo("Answer: \"{Question}\" with \"{Answer}\" which is {Correctness}", e.Question, e.Answer, e.IsCorrect ? "correct" : "incorrect");
 
         var builder = new AppNotificationBuilder()
+            .SetAppLogoOverride(_logoPath)
             .AddText($"{(e.IsCorrect ? "Correct" : "Incorrect")}!")
             .AddText($"Q: {e.Question} ")
             .AddText($"A: {e.Question.CorrectAnswer} ");
@@ -117,10 +140,15 @@ public class TriviaBackgroundService : BackgroundService
         {
             if (_pendingQuestions.TryGetValue(questionId, out var question))
             {
-                if (args.Arguments.TryGetValue("Answer", out var answer))
+                if (question.Type == QuestionType.TrueFalse && args.Arguments.TryGetValue("Answer", out var tfAnswer))
                 {
                     LogInfo("User answering \"{Question}\"", question);
-                    QuestionManager.AnswerQuestion(question, answer);
+                    QuestionManager.AnswerQuestion(question, tfAnswer);
+                }
+                else if (question.Type == QuestionType.MultipleChoice && args.UserInput.TryGetValue("Answer", out var mcAnswer))
+                {
+                    LogInfo("User answering \"{Question}\"", question);
+                    QuestionManager.AnswerQuestion(question, mcAnswer);
                 }
                 else
                 {

@@ -116,6 +116,63 @@ internal static class OpenTriviaDatabase
         return false;
     }
 
+    internal static string GetCategoryFriendlyName(QuestionCategory category)
+    {
+        switch (category)
+        {
+            case QuestionCategory.GeneralKnowledge:
+                return "General Knowledge";
+            case QuestionCategory.Entertainment_Books:
+                return "Entertainment: Books";
+            case QuestionCategory.Entertainment_Film:
+                return "Entertainment: Film";
+            case QuestionCategory.Entertainment_Music:
+                return "Entertainment: Music";
+            case QuestionCategory.Entertainment_MusicalsAndTheatres:
+                return "Entertainment: Musicals & Theatres";
+            case QuestionCategory.Entertainment_Television:
+                return "Entertainment: Television";
+            case QuestionCategory.Entertainment_VideoGames:
+                return "Entertainment: Video Games";
+            case QuestionCategory.Entertainment_BoardGames:
+                return "Entertainment: Board Games";
+            case QuestionCategory.ScienceAndNature:
+                return "Science & Nature";
+            case QuestionCategory.Science_Computers:
+                return "Science: Computers";
+            case QuestionCategory.Science_Mathematics:
+                return "Science: Mathematics";
+            case QuestionCategory.Mythology:
+                return "Mythology";
+            case QuestionCategory.Sports:
+                return "Sports";
+            case QuestionCategory.Geography:
+                return "Geography";
+            case QuestionCategory.History:
+                return "History";
+            case QuestionCategory.Politics:
+                return "Politics";
+            case QuestionCategory.Art:
+                return "Art";
+            case QuestionCategory.Celebrities:
+                return "Celebrities";
+            case QuestionCategory.Animals:
+                return "Animals";
+            case QuestionCategory.Vehicles:
+                return "Vehicles";
+            case QuestionCategory.Entertainment_Comics:
+                return "Entertainment: Comics";
+            case QuestionCategory.Science_Gadgets:
+                return "Science: Gadgets";
+            case QuestionCategory.Entertainment_JapaneseAnimeAndManga:
+                return "Entertainment: Japanese Anime & Manga";
+            case QuestionCategory.Entertainment_CartoonAndAnimations:
+                return "Entertainment: Cartoon & Animations";
+        }
+
+        throw new ArgumentOutOfRangeException(nameof(category), $"Value: \"{category}\"");
+    }
+
     private static QuestionCategory GetCategory(string? jsonValue)
     {
         if (jsonValue is null)
