@@ -11,7 +11,6 @@ using Microsoft.Extensions.Hosting;
 
 using Microsoft.Windows.AppNotifications;
 using Microsoft.Windows.AppNotifications.Builder;
-using System.Linq;
 
 namespace TriviaService;
 
@@ -93,7 +92,7 @@ public class TriviaBackgroundService : BackgroundService
         catch (OperationCanceledException) { }
         catch (Exception ex)
         {
-            LogError(ex, "{Message}", ex.Message);
+            LogError(ex);
             UnregisterForNotifications();
             Environment.Exit(1);
         }
@@ -143,11 +142,11 @@ public class TriviaBackgroundService : BackgroundService
         }
     }
 
-    private void LogError(Exception ex, string? message, params object?[] args)
+    private void LogError(Exception ex)
     {
         if (_logger.IsEnabled(LogLevel.Error))
         {
-            _logger.LogError(ex, message, args);
+            _logger.LogError(ex, "{Message}", ex.Message);
         }
     }
 

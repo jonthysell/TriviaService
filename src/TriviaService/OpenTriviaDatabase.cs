@@ -22,21 +22,21 @@ internal static class OpenTriviaDatabase
     {
         var uriSB = new StringBuilder(BaseUri);
 
-        uriSB.Append($"?amount={ query.Amount }");
+        uriSB.Append($"?amount={query.Amount}");
 
         if (query.Category.HasValue)
         {
-            uriSB.Append($"&category={ ToQueryValue(query.Category.Value) }");
+            uriSB.Append($"&category={ToQueryValue(query.Category.Value)}");
         }
 
         if (query.Difficulty.HasValue)
         {
-            uriSB.Append($"&difficulty={ ToQueryValue(query.Difficulty.Value) }");
+            uriSB.Append($"&difficulty={ToQueryValue(query.Difficulty.Value)}");
         }
 
         if (query.Type.HasValue)
         {
-            uriSB.Append($"&type={ ToQueryValue(query.Type.Value) }");
+            uriSB.Append($"&type={ToQueryValue(query.Type.Value)}");
         }
 
         var client = new HttpClient();
@@ -63,14 +63,14 @@ internal static class OpenTriviaDatabase
 
         if (jsonDoc is null)
         {
-            throw new Exception($"Unable to parse JSON from response to \"{ uriSB }\".");
+            throw new Exception($"Unable to parse JSON from response to \"{uriSB}\".");
         }
 
         var results = jsonDoc.RootElement.GetProperty("results").EnumerateArray().Select(ParseJson).ToList();
 
         if (results is null)
         {
-            throw new Exception($"No results in response to \"{ uriSB }\", response_code: { (jsonDoc.RootElement.TryGetProperty("response_code", out var responseCode) ? responseCode.ToString() : "???") }");
+            throw new Exception($"No results in response to \"{uriSB}\", response_code: {(jsonDoc.RootElement.TryGetProperty("response_code", out var responseCode) ? responseCode.ToString() : "???")}");
         }
 
         return results;
@@ -110,7 +110,7 @@ internal static class OpenTriviaDatabase
             result = ParseJson(element);
             return true;
         }
-        catch {}
+        catch { }
 
         result = default;
         return false;
@@ -175,7 +175,7 @@ internal static class OpenTriviaDatabase
                 return QuestionCategory.Entertainment_CartoonAndAnimations;
         }
 
-        throw new ArgumentOutOfRangeException(nameof(jsonValue), $"Value: \"{ jsonValue }\"");
+        throw new ArgumentOutOfRangeException(nameof(jsonValue), $"Value: \"{jsonValue}\"");
     }
 
     private static string ToQueryValue(QuestionCategory value)
